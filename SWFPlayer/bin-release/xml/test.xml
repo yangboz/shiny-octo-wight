@@ -1,0 +1,65 @@
+<!--  注释：
+	   score ：指定分值 如果为空 取平均分
+	   oneChoice ：指定选择项目是否为单一一个 如果为空 默认可以多选
+
+
+-->
+<root str="@@">
+<item
+	typeInfor="判断题（共5题 每题20分）"
+	question="1. 成都杜甫草堂博物馆，是纪念中国唐代伟大现实主义诗人杜甫的博物馆。"
+	choice="A正确@@B错误"
+	standard="A"
+	oneChoice="true"
+	score=""
+	goodFeedback="答对了"
+	badFeedback="很遗憾!"
+	analysis=""
+	/>
+
+	<item
+	typeInfor="判断题（共5题 每题20分）"
+	question="2. 成都宽窄巷子的得名是由于宽巷子很宽，窄巷子很窄。"
+	choice="A正确@@B错误"
+	standard="B"
+	oneChoice="true"
+	score=""
+	goodFeedback="答对了"
+	badFeedback="很遗憾!"
+	analysis="解析：宽巷子不宽，窄巷子不窄。宽巷子的“窄”是逍遥人生的印记，窄巷子的“宽”是安逸生活的回忆。"
+	/>
+<item
+	typeInfor="判断题（共5题 每题20分）"
+	question="3. 青羊宫观被传说成为神仙聚会、老君传道的圣地，是因为老子为关令尹喜讲道德经的故事。"
+	choice="A正确@@B错误"
+	standard="A"
+	oneChoice="true"
+	score=""
+	goodFeedback="答对了"
+	badFeedback="很遗憾!"
+	analysis=""
+	/>
+<item
+	typeInfor="判断题（共5题 每题20分）"
+	question="4. 成都武侯祠的“三绝碑”由唐朝著名宰相裴度撰碑文，书法家柳公权书写。"
+	choice="A正确@@B错误"
+	standard="B"
+	oneChoice="true"
+	score=""
+	goodFeedback="答对了"
+	badFeedback="很遗憾!"
+	analysis="解析：“三绝碑”由唐朝著名宰相裴度撰碑文，书法家柳公绰（柳公权之兄）书写。 "
+	/>
+<item
+	typeInfor="判断题（共5题 每题20分）"
+	question="5. 川菜的历史悠久，发源于巴蜀，最大的特点是“一菜一格,百菜百味”。"
+	choice="A正确@@B错误"
+	standard="A"
+	oneChoice="true"
+	score=""
+	goodFeedback="答对了"
+	badFeedback="很遗憾!"
+	analysis=" "
+	/>
+
+</root>

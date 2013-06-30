@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root id="spk02" lessonPassPercent="90" swfPassPercent="90" ctrol="1"
+	playPause="1" prevNext="1" timeLineMc="" freeLook="1" autoNext="1" bgm="1">
+	<z name="一、">
+		<item name="1." filePath="swf/01.swf" />
+		<item name="2." filePath="swf/02.swf" />
+		<item name="3." filePath="swf/03.swf" />
+		<item name="4." filePath="swf/04.swf" />
+		<item name="5." filePath="swf/05.swf" />
+	</z>
+</root>

@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--@see: https://github.com/patrickheinzelmann/Spark-Slider-with-Track-Highlight-->
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" 
+			   width="900" height="550"
+			   applicationComplete="applicationCompleteHandler(event)"
+			   xmlns:spark="de.patrickheinzelmann.components.spark.*"
+			   >
+	<fx:Style>
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		
+		s|Button#playBtn {
+			skinClass: ClassReference("skinClass.PlayButtonSkin");
+		}
+		s|Button#stopBtn {
+			skinClass: ClassReference("skinClass.StopButtonSkin");
+		}
+		s|Button#pauseBtn {
+			skinClass: ClassReference("skinClass.PauseButtonSkin");
+		}
+		s|Button#forwardBtn {
+			skinClass: ClassReference("skinClass.ForwardButtonSkin");
+		}
+		s|Button#backwardBtn {
+			skinClass: ClassReference("skinClass.BackwardButtonSkin");
+		}
+		s|ToggleButton#muteBtn {
+			skinClass: ClassReference("skinClass.MuteButtonSkin");
+		}
+	</fx:Style>
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			import mx.rpc.events.ResultEvent;
+			//
+			private var xmlData:XML;
+			private var mcList:Array = [];
+			[Bindable]
+			private var mcIndex:int = 0;
+			//XML elements and attributes.
+//			private var id:int;//课件平台上唯一身份标记
+			private var lessonPassPercent:int;//课件完成条件（需要看完所有swf的百分比）
+			private var swfPassPercent:int;//单个swf 播放完成要求（看到**%就算完成）
+			[Bindable]
+			private var ctrol:Boolean;//当前SWF观看过程中是否可以拖动进度条 或者可以随便点击目录导航
+			private var playPause:Boolean;//当前SWF观看过程中是否可以随意暂停或者继续播放
+			private var prevNext:Boolean;//当前SWF观看过程中是否可以随意暂停或者继续播放
+			private var timeLineMc:String;//课件进度条 所监控的时间轴（默认是swf的主时间轴）
+			[Bindable]
+			private var freeLook:Boolean;//随意跳转swf 随意拖动进度
+			private var autoNext:Boolean;//是否自动播放下一个swf
+			private var bgm:Boolean;//是否播放背景音乐
+//			id="spk02" lessonPassPercent="90" swfPassPercent="90" ctrol="1"
+//			playPause="1" prevNext="1" timeLineMc="" freeLook="1" autoNext="1" bgm="1"
+			[Bindable]
+			private var curMovieClip:MovieClip;
+			//Time ticker
+			[Bindable]
+			private var curMC_TotalTime:String;
+			[Bindable]
+			private var curMC_CurTime:String;
+			//
+			private static const FPS:int = 24;
+			//
+			protected function applicationCompleteHandler(event:FlexEvent):void
+			{
+//				trace("applicationCompleteHandler");
+				//Read and parse XML
+				swfData.send();
+			}
+			
+			protected function swfloader_completeHandler(event:Event):void
+			{
+				curMovieClip = MovieClip(swfLoader.content);
+				if(curMovieClip)
+				{
+					if(!this.autoNext)
+					{
+						curMovieClip.stop();
+					}
+					curMovieClip.addEventListener(Event.ENTER_FRAME,swfLoader_enterFrameHandler);
+					//
+					this.curMC_TotalTime = convertToHHMMSS(curMovieClip.totalFrames/FPS);
+				}
+				//
+				hSlider.maximum = curMovieClip.totalFrames;
+				
+			}
+			
+			protected function playHandler(event:Event):void
+			{
+				curMovieClip.play();
+			}
+			
+			protected function stopHandler(event:Event):void
+			{
+				curMovieClip.stop();	
+			}
+			
+			protected function pauseHandler(event:Event):void
+			{
+				curMovieClip.stop();	
+			}
+			
+			protected function xmlResultHandler(event:ResultEvent):void
+			{
+//				trace(event.result);
+				xmlData = event.result as XML;
+				this.lessonPassPercent = xmlData.@lessonPassPercent;
+				this.swfPassPercent = xmlData.@swfPassPercent;
+				this.ctrol = xmlData.@ctrol;
+				this.playPause = xmlData.@playPause;
+				this.prevNext = xmlData.@prevNext;
+				this.timeLineMc = xmlData.@timeLineMc;
+				this.freeLook = xmlData.@freeLook;
+				this.autoNext = xmlData.@autoNext;
+				this.bgm = xmlData.@bgm;
+				var items:XMLList = xmlData.z.item as XMLList;
+				for(var i:int=0;i<items.length();i++)
+				{
+					this.mcList.push(items[i].@filePath);
+				}
+				//Set default mc source
+//				trace(this.mcList);
+				this.swfLoader.source  = this.mcList[this.mcIndex];
+			}
+			
+			protected function swfLoader_enterFrameHandler(event:Event):void
+			{
+				this.curMC_CurTime = convertToHHMMSS(curMovieClip.currentFrame/FPS);
+//				trace(curMovieClip.currentFrame,this.frameRate,"time:",this.curMC_CurTime,this.curMC_TotalTime);
+				hSlider.value = curMovieClip.currentFrame;
+				if(curMovieClip.currentFrame>=curMovieClip.totalFrames)
+				{
+					curMovieClip.stop();
+					if(this.autoNext)
+					{
+						this.forwardBtn.dispatchEvent(new MouseEvent(MouseEvent.CLICK));
+					}
+				}
+			}
+			
+			protected function prevMovieClipHanlder(event:Event):void
+			{
+				mcIndex--;
+				swfLoader.unloadAndStop();
+				swfLoader.source = mcList[mcIndex];
+				//
+				backwardBtn.enabled = (mcIndex>0);
+				forwardBtn.enabled = (mcIndex<mcList.length-1);
+				//
+				
+			}
+			
+			protected function nextMovieClipHanlder(event:Event):void
+			{
+				mcIndex++;
+				swfLoader.unloadAndStop();
+				swfLoader.source = mcList[mcIndex];
+				//
+				backwardBtn.enabled = (mcIndex>0);
+				forwardBtn.enabled = (mcIndex<mcList.length-1);
+			}
+			
+			protected function muteHandler(event:Event):void
+			{
+				if(!muteBtn.selected)
+				{
+					this.swfLoader.soundTransform = new SoundTransform(0.75);
+				}else
+				{
+					this.swfLoader.soundTransform = new SoundTransform(0);
+				}
+			}
+			//Utility functions
+			private function convertToHHMMSS($seconds:Number):String
+			{
+				var s:Number = $seconds % 60;
+				var m:Number = Math.floor(($seconds % 3600 ) / 60);
+				var h:Number = Math.floor($seconds / (60 * 60));
+				
+				var hourStr:String = (h == 0) ? "" : doubleDigitFormat(h) + ":";
+				var minuteStr:String = doubleDigitFormat(m) + ":";
+				var secondsStr:String = doubleDigitFormat(s);
+				
+				return hourStr + minuteStr + secondsStr;
+			}
+			
+			private function doubleDigitFormat($num:uint):String
+			{
+				if ($num < 10) 
+				{
+					return ("0" + $num);
+				}
+				return String($num);
+			}
+			
+			protected function hSlider_changeHandler(event:Event):void
+			{
+				if(curMovieClip)
+				{
+					curMovieClip.gotoAndPlay(this.hSlider.value);
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<s:HTTPService id="swfData" url="xml/swf.xml" result="xmlResultHandler(event)" resultFormat="e4x" />
+	</fx:Declarations>
+	<s:BorderContainer width="100%" enabled="{this.ctrol}">
+		<s:layout>
+			<s:VerticalLayout gap="0"/>
+		</s:layout>
+		<s:SWFLoader id="swfLoader" width="100%" height="470" showBusyCursor="true" autoLoad="true" complete="swfloader_completeHandler(event)"/>
+		<s:BorderContainer width="100%" borderVisible="false">
+			<s:layout>
+				<s:HorizontalLayout verticalAlign="middle"/>
+			</s:layout>
+			<!--<s:Button label="B" enabled="false"/>-->
+			<s:Image source="@Embed('imgs/BackwardImg.png')" />
+			<spark:HSlider id="hSlider" width="100%" minimum="0" stepSize="1" showTrackHighlight="true" accentColor="#0066FF" liveDragging="{this.freeLook}" change="hSlider_changeHandler(event)"/>
+			<!--<s:HSlider id="hSlider" width="100%" minimum="0" stepSize="1"/>-->
+			<!--<s:Button label="F" enabled="false" />-->
+			<s:Image source="@Embed('imgs/ForwardImg.png')" />
+			<s:Label text="{curMC_CurTime}"/>
+			<s:Label text="/"/>
+			<s:Label text="{curMC_TotalTime}"/>
+			<s:Button enabled="false" id="backwardBtn" click="prevMovieClipHanlder(event)"/>
+			<s:Button id="pauseBtn" click="pauseHandler(event)"/>
+			<!--<s:Button id="stopBtn" click="stopHandler(event)"/>-->
+			<s:Button id="playBtn" click="playHandler(event)"/>
+			<s:Button id="forwardBtn" click="nextMovieClipHanlder(event)"/>
+		</s:BorderContainer>
+		<s:BorderContainer width="100%">
+			<s:layout>
+				<s:HorizontalLayout verticalAlign="middle"/>
+			</s:layout>
+			<s:ToggleButton id="muteBtn" click="muteHandler(event)" />
+		</s:BorderContainer>
+	</s:BorderContainer>
+</s:Application>
